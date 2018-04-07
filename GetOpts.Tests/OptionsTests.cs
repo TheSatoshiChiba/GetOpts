@@ -1,11 +1,7 @@
 ﻿using DD.GetOpts;
 using NUnit.Framework;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
 
-namespace GetOpts.Tests {
+namespace DD.GetOpts.Tests {
     public class OptionsTests {
         public static readonly char[] WHITE_SPACE_CHARACTERS = new[] {
             '\u0020', '\u00A0', '\u1680', '\u2000', '\u2001',
@@ -35,6 +31,149 @@ namespace GetOpts.Tests {
             Assert.That(
                 () => new Options(),
                 Throws.Nothing );
+
+            Assert.That(
+                () => new Options( "\\" ),
+                Throws.Nothing );
+
+            Assert.That(
+                () => new Options( "\\\\" ),
+                Throws.Nothing );
+
+            Assert.That(
+                () => new Options( "a", "a" ),
+                Throws.ArgumentException
+                .With.Message.Contain( "Short and long prefix must not be the same." ) );
+        }
+
+        [Test]
+        public void CreationNullTest() {
+            Assert.That(
+                () => new Options( shortPrefix: null ),
+                Throws.ArgumentNullException
+                .With.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: null ),
+                Throws.ArgumentNullException
+                .With.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: null, longPrefix: null ),
+                Throws.ArgumentNullException
+                .With.Message.Contain( "shortPrefix" ) );
+        }
+
+        [Test]
+        public void CreationEmptyTest() {
+            var error = "Prefix must not be empty.";
+
+            Assert.That(
+                () => new Options( shortPrefix: string.Empty ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: string.Empty ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: string.Empty, longPrefix: string.Empty ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+        }
+
+        [TestCaseSource( nameof( WHITE_SPACE_CHARACTERS ) )]
+        public void CreationWhiteSpaceTest( char whiteSpace ) {
+            var prefix = whiteSpace.ToString();
+            var error = "Prefix must not be empty.";
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: prefix ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix, longPrefix: prefix ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            var prefix2 = $"{whiteSpace}Foo{whiteSpace}Bar{whiteSpace}";
+            var error2 = "Prefix must not contain control or white space characters.";
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix2 ),
+                Throws.ArgumentException
+                .With.Message.Contain( error2 )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: prefix2 ),
+                Throws.ArgumentException
+                .With.Message.Contain( error2 )
+                .And.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix2, longPrefix: prefix2 ),
+                Throws.ArgumentException
+                .With.Message.Contain( error2 )
+                .And.Message.Contain( "shortPrefix" ) );
+        }
+
+        [TestCaseSource( nameof( CONTROL_CHARACTERS ) )]
+        public void CreationControlTest( char control ) {
+            var prefix = control.ToString();
+            var error = "Prefix must not contain control or white space characters.";
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: prefix ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix, longPrefix: prefix ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            var prefix2 = $"Foo{control}Bar";
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix2 ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: prefix2 ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: prefix2, longPrefix: prefix2 ),
+                Throws.ArgumentException
+                .With.Message.Contain( error )
+                .And.Message.Contain( "shortPrefix" ) );
         }
 
         [Test]
