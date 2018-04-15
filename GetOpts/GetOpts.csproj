@@ -20,4 +20,8 @@
     <DocumentationFile>bin\Release\netstandard2.0\GetOpts.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+
 </Project>

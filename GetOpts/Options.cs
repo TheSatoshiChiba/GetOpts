@@ -9,6 +9,8 @@ namespace DD.GetOpts {
     /// <remarks>
     /// <para>Added in version 0.1.0.</para>
     /// </remarks>
+    /// 
+    /*
     public sealed class Options {
         private readonly string shortPrefix;
         private readonly string longPrefix;
@@ -134,6 +136,33 @@ namespace DD.GetOpts {
             }
         }
 
+        public IEnumerable<string> Parse( IEnumerable<string> arguments ) {
+            var matches = new List<string>();
+
+            foreach ( var argument in arguments ) {
+                var name = argument;
+
+                if ( argument.StartsWith( shortPrefix ) ) { // Check for short option
+                    name = name.Remove( 0, shortPrefix.Length );
+
+                    if ( !shortOptions.TryGetValue( name, out var shortOption ) ) {
+                        throw new ArgumentException( $"Unknown option {argument}.", nameof( arguments ) );
+                    }
+
+                } else if ( argument.StartsWith( longPrefix ) ) { // Check for long option
+                   name = name.Remove( 0, longPrefix.Length );
+
+                    if ( longOptions.TryGetValue( name, out var longOption ) ) {
+                        throw new ArgumentException( $"Unknown option {argument}.", nameof( arguments ) );
+                    }
+                }
+
+                matches.Add( name );
+            }
+
+            return matches;
+        }
+
         /// <summary>
         /// The command line option.
         /// </summary>
@@ -164,5 +193,5 @@ namespace DD.GetOpts {
                 LongName = longName;
             }
         }
-    }
+    }*/
 }
