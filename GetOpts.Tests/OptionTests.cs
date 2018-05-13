@@ -5,7 +5,7 @@ namespace DD.GetOpts.Tests {
     /// <summary>
     /// The <see cref="Option" /> tests.
     /// </summary>
-    public class OptionsTests {
+    public class OptionTests {
         [Test]
         public void OccurValueTest() {
             Assert.That( (byte)Occur.ONCE, Is.EqualTo( 0x00 ) );
