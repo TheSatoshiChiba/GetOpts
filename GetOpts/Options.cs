@@ -5,28 +5,36 @@ using System.Linq;
 using System.Text;
 
 namespace DD.GetOpts {
+    /*
+    /// <summary>
+    /// The command line <see cref="Option"/> parser.
+    /// </summary>
     public sealed class Options {
         private const string SHORT_PREFIX = "-";
         private const string LONG_PREFIX = "--";
 
         private readonly HashSet<Option> required = new HashSet<Option>();
         private readonly HashSet<Option> allOptions = new HashSet<Option>();
-        private readonly Dictionary<string, Option> shortOptions = new Dictionary<string, Option>();
-        private readonly Dictionary<string, Option> longOptions = new Dictionary<string, Option>();
+        private readonly Dictionary<string, Option> shortOptions
+            = new Dictionary<string, Option>();
+        private readonly Dictionary<string, Option> longOptions
+            = new Dictionary<string, Option>();
+
+        /// <summary>
+        /// Adds a <see cref="Option"/> to the current <see cref="Options"/>
+        /// instance.
+        /// </summary>
+        /// <returns>
+        /// The current <see cref="Options"/> instance.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="option"/> is <c>null</c>.
+        /// </exception>
+        public Options Add( Option option ) {
+
+        }
 
         public Options Add( string shortName, string longName, Argument arguments, Occur occurs ) {
-            if ( shortName == null ) {
-                throw new ArgumentNullException( nameof( shortName ) );
-            }
-            if ( longName == null ) {
-                throw new ArgumentNullException( nameof( longName ) );
-            }
-            if ( ( byte )arguments > 0x02 ) {
-                throw new ArgumentException( $"Invalid {nameof( arguments )} value {arguments}.", nameof( arguments ) );
-            }
-            if ( ( byte )occurs > 0x02 ) {
-                throw new ArgumentException( $"Invalid {nameof( occurs )} value {occurs}.", nameof( occurs ) );
-            }
 
             shortName = shortName.Trim();
             longName = longName.Trim();

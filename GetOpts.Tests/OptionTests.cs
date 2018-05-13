@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NUnit.Framework;
 
 namespace DD.GetOpts.Tests {
@@ -6,6 +7,29 @@ namespace DD.GetOpts.Tests {
     /// The <see cref="Option" /> tests.
     /// </summary>
     public class OptionTests {
+        private static readonly char[] WHITE_SPACE_CHARACTERS = new[] {
+            '\u0020', '\u00A0', '\u1680', '\u2000', '\u2001',
+            '\u2002', '\u2003', '\u2004', '\u2005', '\u2006',
+            '\u2007', '\u2008', '\u2009', '\u200A', '\u202F',
+            '\u205F', '\u3000', '\u2028', '\u2029', '\u0009',
+            '\u000A', '\u000B', '\u000C', '\u000D', '\u0085',
+        };
+
+        private static readonly char[] CONTROL_CHARACTERS = new[] {
+            '\u0000', '\u0001', '\u0002', '\u0003', '\u0004',
+            '\u0005', '\u0006', '\u0007', '\u0008', '\u000E',
+            '\u000F', '\u0010', '\u0011', '\u0012', '\u0013',
+            '\u0014', '\u0015', '\u0016', '\u0017', '\u0018',
+            '\u0019', '\u001A', '\u001B', '\u001C', '\u001D',
+            '\u001E', '\u001F', '\u007F', '\u0080', '\u0081',
+            '\u0082', '\u0083', '\u0084', '\u0086', '\u0087',
+            '\u0088', '\u0089', '\u008A', '\u008B', '\u008C',
+            '\u008D', '\u008E', '\u008F', '\u0090', '\u0091',
+            '\u0092', '\u0093', '\u0094', '\u0095', '\u0096',
+            '\u0097', '\u0098', '\u0099', '\u009A', '\u009B',
+            '\u009C', '\u009D', '\u009E', '\u009F',
+        };
+
         [Test]
         public void OccurValueTest() {
             Assert.That( (byte)Occur.ONCE, Is.EqualTo( 0x00 ) );
@@ -44,31 +68,103 @@ namespace DD.GetOpts.Tests {
         }
 
         [Test]
-        public void InvalidCreationTest() {
+        public void FailedCreationTest() {
             var arg = Argument.NONE;
             var occ = Occur.ONCE;
 
             Assert.That(
                 () => new Option( null, "long", arg, occ ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "shortName" ) );
+                .With.Message.Contain( "Parameter name: shortName" ) );
+
+            Assert.That(
+                () => new Option( string.Empty, "long", arg, occ ),
+                Throws.ArgumentException
+                .With.Message.Contain( "shortName must not be empty" )
+                .And.Message.Contain( "Parameter name: shortName" ) );
 
             Assert.That(
                 () => new Option( "short", null, arg, occ ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "longName" ) );
+                .With.Message.Contain( "Parameter name: longName" ) );
+
+            Assert.That(
+                () => new Option( "short", string.Empty, arg, occ ),
+                Throws.ArgumentException
+                .With.Message.Contain( "longName must not be empty" )
+                .And.Message.Contain( "Parameter name: longName" ) );
 
             Assert.That(
                 () => new Option( "short", "long", ( Argument )0x03, occ ),
                 Throws.ArgumentException
                 .With.Message.Contain( "Invalid Argument option 3" )
-                .And.Message.Contain( "arguments" ) );
+                .And.Message.Contain( "Parameter name: arguments" ) );
 
             Assert.That(
                 () => new Option( "short", "long", arg, ( Occur )0x03 ),
                 Throws.ArgumentException
                 .With.Message.Contain( "Invalid Occur option 3" )
-                .And.Message.Contain( "occurs" ) );
+                .And.Message.Contain( "Parameter name: occurs" ) );
+        }
+
+        [Test]
+        public void InvalidCharactersCreationTest() {
+            var arg = Argument.NONE;
+            var occ = Occur.ONCE;
+            var expected = "must not contain control or white space characters";
+            var sequence = CONTROL_CHARACTERS.Union( WHITE_SPACE_CHARACTERS );
+
+            foreach ( var character in sequence ) {
+                var name = $"foo{character}bar";
+
+                Assert.That(
+                    () => new Option( name, "long", arg, occ ),
+                    Throws.ArgumentException
+                    .With.Message.Contain( "shortName " + expected )
+                    .And.Message.Contain( "Parameter name: shortName" ) );
+
+                Assert.That(
+                    () => new Option( "short", name, arg, occ ),
+                    Throws.ArgumentException
+                    .With.Message.Contain( "longName " + expected )
+                    .And.Message.Contain( "Parameter name: longName" ) );
+            }
+        }
+
+        [Test]
+        public void TrimCreationTest() {
+            var arg = Argument.NONE;
+            var occ = Occur.ONCE;
+
+            foreach ( var character in WHITE_SPACE_CHARACTERS ) {
+                var prefix = $"{character}foo";
+                var suffix = $"foo{character}";
+                var both = $"{character}foo{character}";
+
+                Assert.That(
+                    () => new Option( prefix, "long", arg, occ ),
+                    Throws.Nothing );
+
+                Assert.That(
+                    () => new Option( suffix, "long", arg, occ ),
+                    Throws.Nothing );
+
+                Assert.That(
+                    () => new Option( both, "long", arg, occ ),
+                    Throws.Nothing );
+
+                Assert.That(
+                    () => new Option( "short", prefix, arg, occ ),
+                    Throws.Nothing );
+
+                Assert.That(
+                    () => new Option( "short", suffix, arg, occ ),
+                    Throws.Nothing );
+
+                Assert.That(
+                    () => new Option( "short", both, arg, occ ),
+                    Throws.Nothing );
+            }
         }
 
         [Test]

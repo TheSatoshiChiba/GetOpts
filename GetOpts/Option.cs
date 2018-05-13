@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 
 namespace DD.GetOpts {
@@ -107,6 +108,8 @@ namespace DD.GetOpts {
         /// <exception cref="ArgumentException">
         /// <paramref name="arguments"/> or <paramref name="occurs"/> is
         /// invalid.
+        /// <paramref name="shortName"/> or <paramref name="longName"/> is
+        /// either empty, or contains invalid whitespace or control characters.
         /// </exception>
         public Option(
             string shortName,
@@ -114,10 +117,8 @@ namespace DD.GetOpts {
             Argument arguments,
             Occur occurs ) {
 
-            ShortName = shortName
-                ?? throw new ArgumentNullException( nameof( shortName ) );
-            LongName = longName
-                ?? throw new ArgumentNullException( nameof( longName ) );
+            ShortName = Format( shortName, nameof( shortName ) );
+            LongName = Format( longName, nameof( longName ) );
 
             Arguments = (byte)arguments <= 0x02
                 ? arguments
@@ -130,6 +131,26 @@ namespace DD.GetOpts {
                 : throw new ArgumentException(
                     $"Invalid {nameof(Occur)} option {occurs}",
                     nameof( occurs ) );
+
+            string Format( string name, string paramName ) {
+                if ( name == null ) {
+                    throw new ArgumentNullException( paramName );
+                }
+                name = name.Trim();
+                if ( name == string.Empty ) {
+                    throw new ArgumentException(
+                        $"{paramName} must not be empty", paramName );
+                }
+                if ( name.Any(
+                    x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
+
+                    throw new ArgumentException(
+                        paramName +
+                        " must not contain control or white space characters",
+                        paramName );
+                }
+                return name;
+            }
         }
 
         /// <inheritdoc/>

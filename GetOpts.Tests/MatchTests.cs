@@ -23,12 +23,12 @@ namespace DD.GetOpts.Tests {
             Assert.That(
                 () => new Match( null, "long", 1, empty ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "shortName" ) );
+                .With.Message.Contain( "Parameter name: shortName" ) );
 
             Assert.That(
                 () => new Match( "short", null, 1, empty ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "longName" ) );
+                .With.Message.Contain( "Parameter name: longName" ) );
 
             Assert.That(
                 () => new Match( "short", "long", 0, empty ),
@@ -45,7 +45,7 @@ namespace DD.GetOpts.Tests {
             Assert.That(
                 () => new Match( "short", "long", 1, null ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "arguments" ) );
+                .With.Message.Contain( "Parameter name: arguments" ) );
         }
 
         [Test]
