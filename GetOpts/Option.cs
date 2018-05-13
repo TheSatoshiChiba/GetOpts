@@ -138,8 +138,18 @@ namespace DD.GetOpts {
                 ?? throw new ArgumentNullException( nameof( shortName ) );
             LongName = longName
                 ?? throw new ArgumentNullException( nameof( longName ) );
-            Arguments = arguments;
-            Occurs = occurs;
+
+            Arguments = (byte)arguments <= 0x02
+                ? arguments
+                : throw new ArgumentException(
+                    $"Invalid {nameof(Argument)} option {arguments}",
+                    nameof( arguments ) );
+
+            Occurs = (byte)occurs <= 0x02
+                ? occurs
+                : throw new ArgumentException(
+                    $"Invalid {nameof(Occur)} option {occurs}",
+                    nameof( occurs ) );
         }
 
         /// <inheritdoc />

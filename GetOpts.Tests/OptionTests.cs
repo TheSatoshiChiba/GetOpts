@@ -41,6 +41,12 @@ namespace DD.GetOpts.Tests {
             Assert.That( option.LongName, Is.EqualTo( "long" ) );
             Assert.That( option.Arguments, Is.EqualTo( arg ) );
             Assert.That( option.Occurs, Is.EqualTo( occ ) );
+        }
+
+        [Test]
+        public void InvalidCreationTest() {
+            var arg = Argument.NONE;
+            var occ = Occur.ONCE;
 
             Assert.That(
                 () => new Option( null, "long", arg, occ ),
@@ -51,6 +57,18 @@ namespace DD.GetOpts.Tests {
                 () => new Option( "short", null, arg, occ ),
                 Throws.ArgumentNullException
                 .With.Message.Contain( "longName" ) );
+
+            Assert.That(
+                () => new Option( "short", "long", ( Argument )0x03, occ ),
+                Throws.ArgumentException
+                .With.Message.Contain( "Invalid Argument option 3" )
+                .And.Message.Contain( "arguments" ) );
+
+            Assert.That(
+                () => new Option( "short", "long", arg, ( Occur )0x03 ),
+                Throws.ArgumentException
+                .With.Message.Contain( "Invalid Occur option 3" )
+                .And.Message.Contain( "occurs" ) );
         }
 
         [Test]
