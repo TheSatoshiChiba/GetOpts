@@ -108,8 +108,10 @@ namespace DD.GetOpts {
         /// <exception cref="ArgumentException">
         /// <paramref name="arguments"/> or <paramref name="occurs"/> is
         /// invalid.
-        /// <paramref name="shortName"/> or <paramref name="longName"/> is
-        /// either empty, or contains invalid whitespace or control characters.
+        /// <paramref name="shortName"/> and <paramref name="longName"/> are
+        /// empty.
+        /// <paramref name="shortName"/> or <paramref name="longName"/> contain
+        /// invalid whitespace or control characters.
         /// </exception>
         public Option(
             string shortName,
@@ -117,8 +119,17 @@ namespace DD.GetOpts {
             Argument arguments,
             Occur occurs ) {
 
-            ShortName = Format( shortName, nameof( shortName ) );
-            LongName = Format( longName, nameof( longName ) );
+            shortName = Format( shortName, nameof( shortName ) );
+            longName = Format( longName, nameof( longName ) );
+
+            if ( shortName == string.Empty && longName == string.Empty ) {
+                throw new ArgumentException(
+                    $"{nameof( shortName )} and {nameof( longName )} are empty",
+                    $"{nameof( shortName )}, {nameof( longName )}" );
+            }
+
+            ShortName = shortName;
+            LongName = longName;
 
             Arguments = (byte)arguments <= 0x02
                 ? arguments
@@ -137,10 +148,6 @@ namespace DD.GetOpts {
                     throw new ArgumentNullException( paramName );
                 }
                 name = name.Trim();
-                if ( name == string.Empty ) {
-                    throw new ArgumentException(
-                        $"{paramName} must not be empty", paramName );
-                }
                 if ( name.Any(
                     x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
 

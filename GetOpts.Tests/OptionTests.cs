@@ -65,6 +65,22 @@ namespace DD.GetOpts.Tests {
             Assert.That( option.LongName, Is.EqualTo( "long" ) );
             Assert.That( option.Arguments, Is.EqualTo( arg ) );
             Assert.That( option.Occurs, Is.EqualTo( occ ) );
+
+            Assert.That(
+                () => new Option( string.Empty, "long", arg, occ ),
+                Throws.Nothing );
+
+            Assert.That(
+                () => new Option( "short", string.Empty, arg, occ ),
+                Throws.Nothing );
+
+            Assert.That(
+                new Option( string.Empty, "long", arg, occ ).ShortName,
+                Is.EqualTo( string.Empty ) );
+
+            Assert.That(
+                new Option( "short", string.Empty, arg, occ ).LongName,
+                Is.EqualTo( string.Empty ) );
         }
 
         [Test]
@@ -78,21 +94,16 @@ namespace DD.GetOpts.Tests {
                 .With.Message.Contain( "Parameter name: shortName" ) );
 
             Assert.That(
-                () => new Option( string.Empty, "long", arg, occ ),
-                Throws.ArgumentException
-                .With.Message.Contain( "shortName must not be empty" )
-                .And.Message.Contain( "Parameter name: shortName" ) );
-
-            Assert.That(
                 () => new Option( "short", null, arg, occ ),
                 Throws.ArgumentNullException
                 .With.Message.Contain( "Parameter name: longName" ) );
 
             Assert.That(
-                () => new Option( "short", string.Empty, arg, occ ),
+                () => new Option( string.Empty, string.Empty, arg, occ ),
                 Throws.ArgumentException
-                .With.Message.Contain( "longName must not be empty" )
-                .And.Message.Contain( "Parameter name: longName" ) );
+                .With.Message.Contain(
+                    "shortName and longName are empty" )
+                .And.Message.Contain( "Parameter name: shortName, longName" ) );
 
             Assert.That(
                 () => new Option( "short", "long", ( Argument )0x03, occ ),
@@ -215,6 +226,15 @@ namespace DD.GetOpts.Tests {
             Assert.That( option6.Equals( (object)option ), Is.False );
             Assert.That(
                 option6.GetHashCode(), Is.Not.EqualTo( option.GetHashCode() ) );
+
+            var option7 = new Option( string.Empty, "a", arg, occ );
+            var option8 = new Option( "a", string.Empty, arg, occ );
+
+            Assert.That( option7.Equals( option8 ), Is.False );
+            Assert.That( option7.Equals( (object)option8 ), Is.False );
+            Assert.That(
+                option7.GetHashCode(),
+                Is.Not.EqualTo( option8.GetHashCode() ) );
         }
 
         [Test]
