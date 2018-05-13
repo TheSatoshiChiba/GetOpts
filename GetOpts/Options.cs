@@ -5,20 +5,12 @@ using System.Linq;
 using System.Text;
 
 namespace DD.GetOpts {
-    /*
     /// <summary>
     /// The command line <see cref="Option"/> parser.
     /// </summary>
     public sealed class Options {
         private const string SHORT_PREFIX = "-";
         private const string LONG_PREFIX = "--";
-
-        private readonly HashSet<Option> required = new HashSet<Option>();
-        private readonly HashSet<Option> allOptions = new HashSet<Option>();
-        private readonly Dictionary<string, Option> shortOptions
-            = new Dictionary<string, Option>();
-        private readonly Dictionary<string, Option> longOptions
-            = new Dictionary<string, Option>();
 
         /// <summary>
         /// Adds a <see cref="Option"/> to the current <see cref="Options"/>
@@ -31,36 +23,41 @@ namespace DD.GetOpts {
         /// <paramref name="option"/> is <c>null</c>.
         /// </exception>
         public Options Add( Option option ) {
+            if ( option == null ) {
+                throw new ArgumentNullException( nameof( option ) );
+            }
+            CheckPrefix( option.ShortName, "ShortName" );
+            CheckPrefix( option.LongName, "LongName" );
+            return this;
 
+            void CheckPrefix( string name, string paramName ) {
+                if ( name.StartsWith( LONG_PREFIX ) ) {
+                    throw new ArgumentException(
+                        paramName +
+                        $" starts with the long prefix {LONG_PREFIX}",
+                        nameof( option ) );
+                }
+                if ( name.StartsWith( SHORT_PREFIX ) ) {
+                    throw new ArgumentException(
+                        paramName +
+                        $" starts with the short prefix {SHORT_PREFIX}",
+                        nameof( option ) );
+                }
+            }
         }
+    }
+
+        /*
+        private readonly HashSet<Option> required = new HashSet<Option>();
+        private readonly HashSet<Option> allOptions = new HashSet<Option>();
+        private readonly Dictionary<string, Option> shortOptions
+            = new Dictionary<string, Option>();
+        private readonly Dictionary<string, Option> longOptions
+            = new Dictionary<string, Option>();
+
+
 
         public Options Add( string shortName, string longName, Argument arguments, Occur occurs ) {
-
-            shortName = shortName.Trim();
-            longName = longName.Trim();
-
-            if ( shortName == string.Empty && longName == string.Empty ) {
-                throw new ArgumentException( "Option must contain at least one valid name." );
-            }
-            if ( shortName.Any( x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
-                throw new ArgumentException( "Short name must not contain control or white space characters.", nameof( shortName ) );
-            }
-            if ( longName.Any( x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
-                throw new ArgumentException( "Long name must not contain control or white space characters.", nameof( longName ) );
-            }
-            if ( shortName.StartsWith( SHORT_PREFIX ) ) {
-                throw new ArgumentException( $"Short name starts with the short prefix {SHORT_PREFIX}.", nameof( shortName ) );
-            }
-            if ( shortName.StartsWith( LONG_PREFIX ) ) {
-                throw new ArgumentException( $"Short name starts with the long prefix {LONG_PREFIX}.", nameof( longName ) );
-            }
-            if ( longName.StartsWith( SHORT_PREFIX ) ) {
-                throw new ArgumentException( $"Long name starts with the short prefix {SHORT_PREFIX}.", nameof( longName ) );
-            }
-            if ( longName.StartsWith( LONG_PREFIX ) ) {
-                throw new ArgumentException( $"Long name starts with the long prefix {LONG_PREFIX}.", nameof( longName ) );
-            }
-
             var option = new Option( shortName, longName, arguments, occurs );
 
             if ( shortName != string.Empty ) {

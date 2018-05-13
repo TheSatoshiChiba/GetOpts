@@ -7,7 +7,7 @@ using NUnit.Framework;
 
 namespace DD.GetOpts.Tests {
     /// <summary>
-    /// The <see cref="Match" /> tests.
+    /// The <see cref="Match"/> tests.
     /// </summary>
     public class MatchTests {
         [Test]

@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace DD.GetOpts.Tests {
     /// <summary>
-    /// The <see cref="Option" /> tests.
+    /// The <see cref="Option"/> tests.
     /// </summary>
     public class OptionTests {
         private static readonly char[] WHITE_SPACE_CHARACTERS = new[] {
