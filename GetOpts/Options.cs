@@ -22,6 +22,10 @@ namespace DD.GetOpts {
         /// <exception cref="ArgumentNullException">
         /// <paramref name="option"/> is <c>null</c>.
         /// </exception>
+        /// <exception cref="ArgumentException">
+        /// A <paramref name="option"/> name contains the short <c>-</c>
+        /// or the long <c>--</c> prefix.
+        /// </exception>
         public Options Add( Option option ) {
             if ( option == null ) {
                 throw new ArgumentNullException( nameof( option ) );
