@@ -4,12 +4,70 @@ using System.Linq;
 
 namespace DD.GetOpts {
     /// <summary>
-    /// The command-line options.
+    /// The occurance of a <see cref="Option" />.
     /// </summary>
     /// <remarks>
     /// <para>Added in version 0.1.0.</para>
     /// </remarks>
-    /// 
+    public enum Occur : byte {
+        /// <summary>
+        /// The <see cref="Option" /> has to be present exactly once.
+        /// </summary>
+        /// <remarks>
+        /// <para>Added in version 0.1.0.</para>
+        /// </remarks>
+        ONCE = 0x00,
+
+        /// <summary>
+        /// The <see cref="Option" /> is optional and can be present once.
+        /// </summary>
+        /// <remarks>
+        /// <para>Added in version 0.1.0.</para>
+        /// </remarks>
+        OPTIONAL = 0x01,
+
+        /// <summary>
+        /// The <see cref="Option" /> is optional and can be present multiple
+        /// times.
+        /// </summary>
+        /// <remarks>
+        /// <para>Added in version 0.1.0.</para>
+        /// </remarks>
+        MULTIPLE = 0x02,
+    }
+
+    /// <summary>
+    /// The occurence of a <see cref="Option" /> argument.
+    /// </summary>
+    /// <remarks>
+    /// <para>Added in version 0.1.0.</para>
+    /// </remarks>
+    public enum Argument : byte {
+        /// <summary>
+        /// The <see cref="Option" /> has no argument.
+        /// </summary>
+        /// <remarks>
+        /// <para>Added in version 0.1.0.</para>
+        /// </remarks>
+        NONE = 0x00,
+
+        /// <summary>
+        /// The <see cref="Option" /> argument is required.
+        /// </summary>
+        /// <remarks>
+        /// <para>Added in version 0.1.0.</para>
+        /// </remarks>
+        REQUIRED = 0x01,
+
+        /// <summary>
+        /// The <see cref="Option" /> argument is optional.
+        /// </summary>
+        /// <remarks>
+        /// <para>Added in version 0.1.0.</para>
+        /// </remarks>
+        OPTIONAL = 0x02,
+    }
+
     /*
     public sealed class Options {
         private readonly string shortPrefix;
