@@ -1,8 +1,11 @@
 ﻿using NUnit.Framework;
+using System.Linq;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace DD.GetOpts.Tests {
     public class ParsingTests {
+        /*
         public static readonly char[] WHITE_SPACE_CHARACTERS = new[] {
             '\u0020', '\u00A0', '\u1680', '\u2000', '\u2001',
             '\u2002', '\u2003', '\u2004', '\u2005', '\u2006',
@@ -26,24 +29,164 @@ namespace DD.GetOpts.Tests {
             '\u009C', '\u009D', '\u009E', '\u009F',
         };
 
-        [Test]
-        public void ParseOptionalTest() {
-            var arguments = new[] { "-v", "--version" };
-            var options = new Options();
+        private Options options;
 
-            options.Add( "-v", "--version", Argument.NONE, Occur.OPTIONAL );
+        [SetUp]
+        public void BeginTest() {
+            options = new Options();
+        }
 
+        [TearDown]
+        public void EndTest() {
+            // no-op.
+        }
+
+
+        [TestCase( Argument.NONE, "a", "", "-a", "" )]
+        [TestCase( Argument.OPTIONAL, "a", "", "-a", "hello" )]
+        [TestCase( Argument.OPTIONAL, "a", "", "-a", "hello" )]
+
+
+
+        [TestCase( Argument.NONE, "", "a", "--a", "" )]
+        [TestCase( Argument.NONE, "", "a", "--a", "hello" )]
+        [TestCase( Argument.NONE, "a", "a", "-a", "" )]
+        [TestCase( Argument.NONE, "a", "a", "-a", "hello" )]
+        [TestCase( Argument.NONE, "a", "a", "--a", "" )]
+        [TestCase( Argument.NONE, "a", "a", "--a", "hello" )]
+        public void ParseOnceTest(
+            Argument argumentOption,
+            string shortName,
+            string longName,
+            string argument1,
+            string argument2 ) {
+
+            options.Add( shortName, longName, argumentOption, Occur.ONCE );
+
+            var matches = options.Parse( BuildArguments( argument ) );
+
+            Assert.That( matches.Arguments.Count, Is.EqualTo( 0 ) );
+
+            if ( shortName != string.Empty ) {
+                AssertShortMatches( matches, shortName, true, 1, Enumerable.Empty<string>() );
+            } else {
+                AssertShortMatches( matches, string.Empty, false, 0, Enumerable.Empty<string>() );
+            }
+
+            if ( longName != string.Empty ) {
+                AssertLongMatches( matches, longName, true, 1, Enumerable.Empty<string>() );
+            } else {
+                AssertLongMatches( matches, string.Empty, false, 0, Enumerable.Empty<string>() );
+            }
+        }
+
+        [TestCase( "a", "", "-a", "" )]
+        [TestCase( "", "a", "--a", "" )]
+        [TestCase( "a", "", "-a", "hello" )]
+        [TestCase( "", "a", "--a", "hello" )]
+        public void ParseOnceOptionalTest(
+            string shortName,
+            string longName,
+            string argument1,
+            string argument2 ) {
+
+            options.Add( shortName, longName, Argument.OPTIONAL, Occur.ONCE );
+
+            var arguments = BuildArguments( argument1, argument2 );
             var matches = options.Parse( arguments );
 
             Assert.That( matches.Arguments.Count, Is.EqualTo( 0 ) );
-            Assert.That( matches.ContainsLong( "version" ), Is.True );
-            Assert.That( matches.ContainsShort( "v" ), Is.True );
-            Assert.That( matches.GetLongArguments( "version" ).Count, Is.EqualTo( 0 ) );
-            Assert.That( matches.GetShortArguments( "v" ).Count, Is.EqualTo( 0 ) );
-            Assert.That( matches.LongCount( "version" ), Is.EqualTo( 2 ) );
-            Assert.That( matches.ShortCount( "v" ), Is.EqualTo( 2 ) );
+
+            if ( shortName != string.Empty ) {
+                AssertShortMatches( matches, shortName, true, 1, arguments.Last() );
+            } else {
+                AssertShortMatches( matches, string.Empty, false, 0, Enumerable.Empty<string>() );
+            }
+
+            if ( longName != string.Empty ) {
+                AssertLongMatches( matches, longName, true, 1, arguments.Last() );
+            } else {
+                AssertLongMatches( matches, string.Empty, false, 0, Enumerable.Empty<string>() );
+            }
         }
 
+        [TestCase( "a", "", "b", "", "-b" )]
+        [TestCase( "a", "", "", "b", "--b" )]
+        [TestCase( "", "a", "b", "", "-b" )]
+        [TestCase( "", "a", "", "b", "--b" )]
+        public void ParsOnceMissingTest(
+            string shortName1,
+            string longName1,
+            string shortName2,
+            string longName2,
+            string argument ) {
+
+            options.Add( shortName1, longName1, Argument.NONE, Occur.ONCE );
+            options.Add( shortName2, longName2, Argument.NONE, Occur.OPTIONAL );
+
+            Assert.That(
+                () => options.Parse( BuildArguments( argument ) ),
+                Throws.ArgumentException
+                .With.Message.EqualTo( "Expected argument a." ) );
+        }
+
+        [TestCase( "-a", "-a" )]
+        [TestCase( "-a", "--b" )]
+        [TestCase( "--b", "-a" )]
+        [TestCase( "--b", "--b" )]
+        public void ParseShortAndLongOnceTest( string argument1, string argument2 ) {
+            options.Add( "a", "b", Argument.NONE, Occur.ONCE );
+
+            Assert.That(
+                () => options.Parse( BuildArguments( argument1, argument2 ) ),
+                Throws.ArgumentException
+                .With.Message.EqualTo( "Multiple occurance of a or b." ) );
+        }
+
+        [TestCase( "-a", "", "-a", "" )]
+        [TestCase( "-a", "", "--b", "" )]
+        [TestCase( "--b", "", "-a", "" )]
+        [TestCase( "--b", "", "--b", "" )]
+        public void ParseShortAndLongOnceOptionalTest( string argument1, string argument2 ) {
+            options.Add( "a", "b", Argument.NONE, Occur.ONCE );
+
+            Assert.That(
+                () => options.Parse( new[] { argument1, argument2 } ),
+                Throws.ArgumentException
+                .With.Message.EqualTo( "Multiple occurance of a or b." ) );
+        }
+
+        private IEnumerable<string> BuildArguments( params string[] arguments )
+            => arguments.Where( x => x != string.Empty );
+
+        private void AssertShortMatches(
+            Matches matches,
+            string name,
+            bool contains,
+            int count,
+            IEnumerable arguments ) {
+
+            Assert.That( matches.ContainsShort( name ), Is.EqualTo( contains ) );
+            Assert.That( matches.GetShortArguments( name ), Is.EquivalentTo( arguments ) );
+            Assert.That( matches.ShortCount( name ), Is.EqualTo( count ) );
+        }
+
+        private void AssertLongMatches(
+            Matches matches,
+            string name,
+            bool contains,
+            int count,
+            IEnumerable arguments ) {
+
+            Assert.That( matches.ContainsLong( name ), Is.EqualTo( contains ) );
+            Assert.That( matches.GetLongArguments( name ), Is.EquivalentTo( arguments ) );
+            Assert.That( matches.LongCount( name ), Is.EqualTo( count ) );
+        }
+
+        /*
+         * var arguments2 = new[] { "-a", "-a" };
+            var arguments6 = new[] { "-x", "-y" };
+         */
         //[Test]
         //public void CreationTest() {
         //    Assert.That(
@@ -302,6 +445,6 @@ namespace DD.GetOpts.Tests {
         //        Throws.ArgumentException
         //        .With.Message.Contain( error )
         //        .And.Message.Contain( "shortName" ) );
-        //}
+        //}*/
     }
 }
