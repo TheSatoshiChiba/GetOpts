@@ -3,67 +3,43 @@ using System.Text;
 
 namespace DD.GetOpts {
     /// <summary>
-    /// The occurance of a <see cref="Option" />.
+    /// The occurance of a <see cref="Option"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>Added in version 0.1.0.</para>
-    /// </remarks>
     public enum Occur : byte {
         /// <summary>
-        /// The <see cref="Option" /> has to be present exactly once.
+        /// The <see cref="Option"/> has to be present exactly once.
         /// </summary>
-        /// <remarks>
-        /// <para>Added in version 0.1.0.</para>
-        /// </remarks>
         ONCE = 0x00,
 
         /// <summary>
-        /// The <see cref="Option" /> is optional and can be present once.
+        /// The <see cref="Option"/> is optional and can be present once.
         /// </summary>
-        /// <remarks>
-        /// <para>Added in version 0.1.0.</para>
-        /// </remarks>
         OPTIONAL = 0x01,
 
         /// <summary>
-        /// The <see cref="Option" /> is optional and can be present multiple
+        /// The <see cref="Option"/> is optional and can be present multiple
         /// times.
         /// </summary>
-        /// <remarks>
-        /// <para>Added in version 0.1.0.</para>
-        /// </remarks>
         MULTIPLE = 0x02,
     }
 
     /// <summary>
-    /// The occurence of a argument after the <see cref="Option" />.
+    /// The occurence of a argument after the <see cref="Option"/>.
     /// </summary>
-    /// <remarks>
-    /// <para>Added in version 0.1.0.</para>
-    /// </remarks>
     public enum Argument : byte {
         /// <summary>
-        /// The <see cref="Option" /> has no argument.
+        /// The <see cref="Option"/> has no argument.
         /// </summary>
-        /// <remarks>
-        /// <para>Added in version 0.1.0.</para>
-        /// </remarks>
         NONE = 0x00,
 
         /// <summary>
-        /// The <see cref="Option" /> argument is required.
+        /// The <see cref="Option"/> argument is required.
         /// </summary>
-        /// <remarks>
-        /// <para>Added in version 0.1.0.</para>
-        /// </remarks>
         REQUIRED = 0x01,
 
         /// <summary>
-        /// The <see cref="Option" /> argument is optional.
+        /// The <see cref="Option"/> argument is optional.
         /// </summary>
-        /// <remarks>
-        /// <para>Added in version 0.1.0.</para>
-        /// </remarks>
         OPTIONAL = 0x02,
     }
 
@@ -73,44 +49,44 @@ namespace DD.GetOpts {
     public sealed class Option : IEquatable<Option> {
         /// <summary>
         /// Gets the short name of the current command line
-        /// <see cref="Option" />.
+        /// <see cref="Option"/>.
         /// </summary>
         /// <returns>
-        /// The short name of the current <see cref="Option" />.
+        /// The short name of the current <see cref="Option"/>.
         /// </returns>
         public string ShortName { get; }
 
         /// <summary>
         /// Gets the long name of the current command line
-        /// <see cref="Option" />.
+        /// <see cref="Option"/>.
         /// </summary>
         /// <returns>
-        /// The long name of the current <see cref="Option" />.
+        /// The long name of the current <see cref="Option"/>.
         /// </returns>
         public string LongName { get; }
 
         /// <summary>
-        /// Gets the <see cref="Argument" /> occurance of the current command
-        /// line <see cref="Option" />.
+        /// Gets the <see cref="Argument"/> occurance of the current command
+        /// line <see cref="Option"/>.
         /// </summary>
         /// <returns>
-        /// The <see cref="Argument" /> occurance of the current command line
-        /// <see cref="Option" />.
+        /// The <see cref="Argument"/> occurance of the current command line
+        /// <see cref="Option"/>.
         /// </returns>
         public Argument Arguments { get; }
 
         /// <summary>
         /// Gets the occurance option of the current command line
-        /// <see cref="Option" />.
+        /// <see cref="Option"/>.
         /// </summary>
         /// <returns>
         /// The occurance option of the current command line
-        /// <see cref="Option" />.
+        /// <see cref="Option"/>.
         /// </returns>
         public Occur Occurs { get; }
 
         /// <summary>
-        /// Initializes a new <see cref="Option" />.
+        /// Initializes a new <see cref="Option"/>.
         /// </summary>
         /// <param name="shortName">
         /// The short name of the command line option.
@@ -127,6 +103,10 @@ namespace DD.GetOpts {
         /// <exception cref="ArgumentNullException">
         /// <paramref name="shortName"/> or <paramref name="longName"/> is
         /// <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="arguments"/> or <paramref name="occurs"/> is
+        /// invalid.
         /// </exception>
         public Option(
             string shortName,
@@ -152,7 +132,7 @@ namespace DD.GetOpts {
                     nameof( occurs ) );
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public bool Equals( Option other ) {
             if ( this == other ) {
                 return true;
@@ -165,10 +145,10 @@ namespace DD.GetOpts {
                 && Occurs == other.Occurs;
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override bool Equals( object obj ) => Equals( obj as Option );
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override int GetHashCode() {
             unchecked {
                 int hash = 31;
@@ -180,7 +160,7 @@ namespace DD.GetOpts {
             }
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public override string ToString()
             => $"{ShortName}, {LongName}, {Arguments}, {Occurs}";
     }
