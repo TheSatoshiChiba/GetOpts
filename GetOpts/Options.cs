@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -8,9 +9,15 @@ namespace DD.GetOpts {
     /// <summary>
     /// The command line <see cref="Option"/> parser.
     /// </summary>
-    public sealed class Options {
+    public sealed class Options : IEnumerable<Option> {
         private const string SHORT_PREFIX = "-";
         private const string LONG_PREFIX = "--";
+
+        private readonly HashSet<Option> options = new HashSet<Option>();
+        private readonly Dictionary<string, Option> shortOptions
+            = new Dictionary<string, Option>();
+        private readonly Dictionary<string, Option> longOptions
+            = new Dictionary<string, Option>();
 
         /// <summary>
         /// Adds a <see cref="Option"/> to the current <see cref="Options"/>
@@ -25,6 +32,7 @@ namespace DD.GetOpts {
         /// <exception cref="ArgumentException">
         /// A <paramref name="option"/> name contains the short <c>-</c>
         /// or the long <c>--</c> prefix.
+        /// A <paramref name="option"/> name already exists in this collection.
         /// </exception>
         public Options Add( Option option ) {
             if ( option == null ) {
@@ -32,6 +40,33 @@ namespace DD.GetOpts {
             }
             CheckPrefix( option.ShortName, "ShortName" );
             CheckPrefix( option.LongName, "LongName" );
+
+            if ( option.ShortName != string.Empty ) {
+                try {
+                    shortOptions.Add( option.ShortName, option );
+                } catch ( ArgumentException ex ) {
+                    throw new ArgumentException(
+                        "Option with short name " +
+                        option.ShortName +
+                        " already exists",
+                        ex );
+                }
+            }
+
+            if ( option.LongName != string.Empty ) {
+                try {
+                    longOptions.Add( option.LongName, option );
+                } catch ( ArgumentException ex ) {
+                    throw new ArgumentException(
+                        "Option with long name " +
+                        option.LongName +
+                        " already exists",
+                        ex );
+                }
+            }
+
+            options.Add( option );
+
             return this;
 
             void CheckPrefix( string name, string paramName ) {
@@ -49,38 +84,19 @@ namespace DD.GetOpts {
                 }
             }
         }
+
+        /// <inheritdoc/>
+        public IEnumerator<Option> GetEnumerator() => options.GetEnumerator();
+
+        /// <inheritdoc/>
+        IEnumerator IEnumerable.GetEnumerator() => options.GetEnumerator();
     }
 
         /*
         private readonly HashSet<Option> required = new HashSet<Option>();
-        private readonly HashSet<Option> allOptions = new HashSet<Option>();
-        private readonly Dictionary<string, Option> shortOptions
-            = new Dictionary<string, Option>();
-        private readonly Dictionary<string, Option> longOptions
-            = new Dictionary<string, Option>();
-
-
 
         public Options Add( string shortName, string longName, Argument arguments, Occur occurs ) {
             var option = new Option( shortName, longName, arguments, occurs );
-
-            if ( shortName != string.Empty ) {
-                try {
-                    shortOptions.Add( option.ShortName, option );
-                } catch ( ArgumentException ex ) {
-                    throw new ArgumentException( $"Option with short name {option.ShortName} already exists.", ex );
-                }
-            }
-
-            if ( longName != string.Empty ) {
-                try {
-                    longOptions.Add( option.LongName, option );
-                } catch ( ArgumentException ex ) {
-                    throw new ArgumentException( $"Option with long name {option.LongName} already exists.", ex );
-                }
-            }
-
-            allOptions.Add( option );
             if ( option.Occurs == Occur.ONCE ) {
                 required.Add( option );
             }
