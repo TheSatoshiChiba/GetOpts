@@ -152,8 +152,8 @@ namespace DD.GetOpts {
                     x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
 
                     throw new ArgumentException(
-                        paramName +
-                        " must not contain control or white space characters",
+                        paramName
+                        + " must not contain control or white space characters",
                         paramName );
                 }
                 return name;

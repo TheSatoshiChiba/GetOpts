@@ -91,31 +91,32 @@ namespace DD.GetOpts.Tests {
             Assert.That(
                 () => new Option( null, "long", arg, occ ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "Parameter name: shortName" ) );
+                    .With.Message.Contain( "Parameter name: shortName" ) );
 
             Assert.That(
                 () => new Option( "short", null, arg, occ ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "Parameter name: longName" ) );
+                    .With.Message.Contain( "Parameter name: longName" ) );
 
             Assert.That(
                 () => new Option( string.Empty, string.Empty, arg, occ ),
                 Throws.ArgumentException
-                .With.Message.Contain(
-                    "shortName and longName are empty" )
-                .And.Message.Contain( "Parameter name: shortName, longName" ) );
+                    .With.Message.Contain(
+                        "shortName and longName are empty" )
+                    .And.Message.Contain(
+                        "Parameter name: shortName, longName" ) );
 
             Assert.That(
                 () => new Option( "short", "long", ( Argument )0x03, occ ),
                 Throws.ArgumentException
-                .With.Message.Contain( "Invalid Argument option 3" )
-                .And.Message.Contain( "Parameter name: arguments" ) );
+                    .With.Message.Contain( "Invalid Argument option 3" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
 
             Assert.That(
                 () => new Option( "short", "long", arg, ( Occur )0x03 ),
                 Throws.ArgumentException
-                .With.Message.Contain( "Invalid Occur option 3" )
-                .And.Message.Contain( "Parameter name: occurs" ) );
+                    .With.Message.Contain( "Invalid Occur option 3" )
+                    .And.Message.Contain( "Parameter name: occurs" ) );
         }
 
         [Test]
@@ -131,14 +132,14 @@ namespace DD.GetOpts.Tests {
                 Assert.That(
                     () => new Option( name, "long", arg, occ ),
                     Throws.ArgumentException
-                    .With.Message.Contain( "shortName " + expected )
-                    .And.Message.Contain( "Parameter name: shortName" ) );
+                        .With.Message.Contain( "shortName " + expected )
+                        .And.Message.Contain( "Parameter name: shortName" ) );
 
                 Assert.That(
                     () => new Option( "short", name, arg, occ ),
                     Throws.ArgumentException
-                    .With.Message.Contain( "longName " + expected )
-                    .And.Message.Contain( "Parameter name: longName" ) );
+                        .With.Message.Contain( "longName " + expected )
+                        .And.Message.Contain( "Parameter name: longName" ) );
             }
         }
 

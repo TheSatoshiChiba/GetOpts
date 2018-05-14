@@ -23,29 +23,29 @@ namespace DD.GetOpts.Tests {
             Assert.That(
                 () => new Match( null, "long", 1, empty ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "Parameter name: shortName" ) );
+                    .With.Message.Contain( "Parameter name: shortName" ) );
 
             Assert.That(
                 () => new Match( "short", null, 1, empty ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "Parameter name: longName" ) );
+                    .With.Message.Contain( "Parameter name: longName" ) );
 
             Assert.That(
                 () => new Match( "short", "long", 0, empty ),
                 Throws.InstanceOf<ArgumentOutOfRangeException>()
-                .With.Message.Contain( $"Invalid Match count 0" )
-                .And.Message.Contain( "Parameter name: count" ) );
+                    .With.Message.Contain( $"Invalid Match count 0" )
+                    .And.Message.Contain( "Parameter name: count" ) );
 
             Assert.That(
                 () => new Match( "short", "long", -1, empty ),
                 Throws.InstanceOf<ArgumentOutOfRangeException>()
-                .With.Message.Contain( $"Invalid Match count -1" )
-                .And.Message.Contain( "Parameter name: count" ) );
+                    .With.Message.Contain( $"Invalid Match count -1" )
+                    .And.Message.Contain( "Parameter name: count" ) );
 
             Assert.That(
                 () => new Match( "short", "long", 1, null ),
                 Throws.ArgumentNullException
-                .With.Message.Contain( "Parameter name: arguments" ) );
+                    .With.Message.Contain( "Parameter name: arguments" ) );
         }
 
         [Test]

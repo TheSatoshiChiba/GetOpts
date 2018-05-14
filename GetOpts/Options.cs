@@ -46,9 +46,9 @@ namespace DD.GetOpts {
                     shortOptions.Add( option.ShortName, option );
                 } catch ( ArgumentException ex ) {
                     throw new ArgumentException(
-                        "Option with short name " +
-                        option.ShortName +
-                        " already exists",
+                        "Option with short name "
+                            + option.ShortName
+                            + " already exists",
                         ex );
                 }
             }
@@ -58,9 +58,9 @@ namespace DD.GetOpts {
                     longOptions.Add( option.LongName, option );
                 } catch ( ArgumentException ex ) {
                     throw new ArgumentException(
-                        "Option with long name " +
-                        option.LongName +
-                        " already exists",
+                        "Option with long name "
+                            + option.LongName
+                            + " already exists",
                         ex );
                 }
             }
@@ -72,16 +72,132 @@ namespace DD.GetOpts {
             void CheckPrefix( string name, string paramName ) {
                 if ( name.StartsWith( LONG_PREFIX ) ) {
                     throw new ArgumentException(
-                        paramName +
-                        $" starts with the long prefix {LONG_PREFIX}",
+                        paramName
+                            + $" starts with the long prefix {LONG_PREFIX}",
                         nameof( option ) );
                 }
                 if ( name.StartsWith( SHORT_PREFIX ) ) {
                     throw new ArgumentException(
-                        paramName +
-                        $" starts with the short prefix {SHORT_PREFIX}",
+                        paramName
+                            + $" starts with the short prefix {SHORT_PREFIX}",
                         nameof( option ) );
                 }
+            }
+        }
+
+        public IEnumerable<Match> Parse( IEnumerable<string> arguments ) {
+            if ( arguments == null ) {
+                throw new ArgumentNullException( nameof( arguments ) );
+            }
+
+            var enumerator = arguments.GetEnumerator();
+            var matchedOptions = new HashSet<Option>();
+            var matchedCount = new Dictionary<Option, int>();
+            var matchedArguments = new Dictionary<Option, List<string>>();
+
+            Option previous = null;
+
+            // Start parsing.
+            while ( enumerator.MoveNext() ) {
+                var argument = enumerator.Current.Trim();
+                var isShort = argument.StartsWith( SHORT_PREFIX );
+                var isLong = argument.StartsWith( LONG_PREFIX );
+
+                // Because we don't account for prefix precedence we can end up
+                // in a situation of matching both prefixes.
+                if ( isLong && isShort ) {
+                    isLong = LONG_PREFIX.Length > SHORT_PREFIX.Length;
+                    isShort = !isLong;
+                }
+
+                if ( isShort ) {
+                    previous = ReadOption(
+                        argument, SHORT_PREFIX, shortOptions )
+                        ?? throw new ArgumentException(
+                            $"Invalid argument {argument}",
+                            nameof( arguments ) );
+
+                } else if ( isLong ) {
+                    previous = ReadOption(
+                        argument, LONG_PREFIX, longOptions )
+                        ?? throw new ArgumentException(
+                            $"Invalid argument {argument}",
+                            nameof( arguments ) );
+
+                } else {
+                    if ( previous?.Arguments != Argument.NONE ) {
+                        matchedArguments[ previous ].Add( argument );
+                    }
+                    // else {
+                    // TODO: Match free standing argument
+                    // }
+
+                    previous = null;
+                }
+            }
+
+            // Check if last option required an argument.
+            if ( previous?.Arguments == Argument.REQUIRED ) {
+                throw new ArgumentException(
+                    $"Expected argument for [{previous}]",
+                    nameof( arguments ) );
+            }
+
+            var missing = options.Where( x => x.Occurs == Occur.ONCE )
+                .Except( matchedOptions );
+
+            if ( missing.Any() ) {
+                throw new ArgumentException(
+                    $"Expected [{missing.First()}]",
+                    nameof( arguments ) );
+            }
+
+            // Returns matches
+            return matchedOptions.Select(
+                x => new Match(
+                    x.ShortName,
+                    x.LongName,
+                    matchedCount[ x ],
+                    matchedArguments[ x ] ) );
+
+            Option ReadOption(
+                string argument,
+                string prefix,
+                Dictionary<string, Option> op ) {
+
+                if ( previous?.Arguments == Argument.REQUIRED ) {
+                    throw new ArgumentException(
+                        $"Expected argument for [{previous}]",
+                        nameof( arguments ) );
+                }
+
+                var name = argument.Remove( 0, prefix.Length );
+                if ( !op.TryGetValue( name, out var option ) ) {
+                    return null; // Not a valid option.
+                }
+
+                // We found a valid option.
+                matchedOptions.Add( option );
+
+                // Update occurance.
+                if ( !matchedCount.TryGetValue( option, out var count ) ) {
+                    matchedCount.Add( option, 1 );
+                } else {
+                    count += 1;
+                    if ( option.Occurs != Occur.MULTIPLE && count > 1 ) {
+                        throw new ArgumentException(
+                            $"Multiple occurance of [{option}]",
+                            nameof( arguments ) );
+                    }
+                    matchedCount[ option ] = count;
+                }
+
+                // Add argument key if not present.
+                if ( !matchedArguments.ContainsKey( option ) ) {
+                    matchedArguments.Add( option, new List<string>() );
+                }
+
+                return option;
             }
         }
 
@@ -103,17 +219,7 @@ namespace DD.GetOpts {
             return this;
         }
 
-        public bool ContainsShort( string shortName )
-            => shortOptions.ContainsKey( shortName );
-
-        public bool ContainsLong( string longName )
-            => longOptions.ContainsKey( longName );
-
         public Matches Parse( IEnumerable<string> arguments ) {
-            var context = new Context( arguments.GetEnumerator() );
-
-            Read( ref context, null );
-
             var shortMatches = new Dictionary<string, Match>();
             var longMatches = new Dictionary<string, Match>();
 
@@ -149,161 +255,6 @@ namespace DD.GetOpts {
                 new ReadOnlyDictionary<string, Match>( longMatches ) );
         }
 
-        private void Read( ref Context context, Option previous ) {
-            if ( !context.Enumerator.MoveNext() ) {
-                if ( previous?.Arguments == Argument.REQUIRED ) {
-                    throw new ArgumentException(
-                        CreateErrorMessage( "Expected argument after ", previous.ShortName, previous.LongName ) );
-                }
-                return;
-            }
-
-            var argument = context.Enumerator.Current.Trim();
-            var isShort = argument.StartsWith( SHORT_PREFIX );
-            var isLong = argument.StartsWith( LONG_PREFIX );
-
-            Option option = null;
-
-            if ( isLong && isShort ) {
-                if ( LONG_PREFIX.Length > SHORT_PREFIX.Length ) {
-                    option = ReadOption( ref context, previous, argument, LONG_PREFIX, longOptions );
-                } else {
-                    option = ReadOption( ref context, previous, argument, SHORT_PREFIX, shortOptions );
-                }
-
-                previous = option ?? throw new ArgumentException( $"Invalid argument {argument}." );
-
-            } else if ( isShort ) {
-                previous = ReadOption( ref context, previous, argument, SHORT_PREFIX, shortOptions )
-                    ?? throw new ArgumentException( $"Invalid argument {argument}." );
-
-            } else if ( isLong ) {
-                previous = ReadOption( ref context, previous, argument, LONG_PREFIX, longOptions )
-                    ?? throw new ArgumentException( $"Invalid argument {argument}." );
-
-            } else {
-                if ( previous?.Arguments != Argument.NONE ) {
-                    context.Arguments[ previous ].Add( argument );
-                } else {
-                    context.Free.Add( argument );
-                }
-
-                previous = null;
-            }
-
-            Read( ref context, previous );
-        }
-
-        private Option ReadOption(
-            ref Context context,
-            Option previous,
-            string argument,
-            string prefix,
-            Dictionary<string, Option> options ) {
-
-            if ( previous?.Arguments == Argument.REQUIRED ) {
-                throw new ArgumentException( $"Expected argument after {argument}." );
-            }
-
-            var name = argument.Remove( 0, prefix.Length );
-            if ( !options.TryGetValue( name, out var option ) ) {
-                return null;
-            }
-
-            context.Options.Add( option );
-            UpdateOptionOccurance( ref context, option );
-
-            if ( !context.Arguments.ContainsKey( option ) ) {
-                context.Arguments.Add( option, new List<string>() );
-            }
-            return option;
-        }
-
-        private void UpdateOptionOccurance( ref Context context, Option option ) {
-            if ( !context.Count.TryGetValue( option, out var count ) ) {
-                context.Count.Add( option, 1 );
-                return;
-            }
-
-            count += 1;
-            if ( option.Occurs != Occur.MULTIPLE && count > 1 ) {
-                throw new ArgumentException(
-                    CreateErrorMessage( "Multiple occurance of ", option.ShortName, option.LongName ) );
-            }
-
-            context.Count[ option ] = count;
-        }
-
-        private string CreateErrorMessage( string message, string shortName, string longName ) {
-            var sb = new StringBuilder( message );
-
-            if ( shortName != string.Empty && longName != string.Empty ) {
-                sb.Append( shortName )
-                    .Append( " or " )
-                    .Append( longName );
-
-            } else if ( shortName != string.Empty ) {
-                sb.Append( shortName );
-
-            } else if ( longName != string.Empty ) {
-                sb.Append( longName );
-            }
-
-            return sb.Append( '.' ).ToString();
-        }
-
-        private ref struct Context {
-            public List<string> Free {
-                get;
-            }
-
-            public HashSet<Option> Options {
-                get;
-            }
-
-            public Dictionary<Option, List<string>> Arguments {
-                get;
-            }
-
-            public Dictionary<Option, int> Count {
-                get;
-            }
-
-            public IEnumerator<string> Enumerator {
-                get;
-            }
-
-            public Context( IEnumerator<string> enumerator )
-                => (Enumerator, Free, Options, Arguments, Count)
-                = (enumerator,
-                new List<string>(),
-                new HashSet<Option>(),
-                new Dictionary<Option, List<string>>(),
-                new Dictionary<Option, int>());
-        }
-    }
-
-    /*
-    public sealed class Options {
-        private readonly string shortPrefix;
-        private readonly string longPrefix;
-
-        private readonly Dictionary<string, Option> shortOptions = new Dictionary<string, Option>();
-        private readonly Dictionary<string, Option> longOptions = new Dictionary<string, Option>();
-
-        /// <summary>
-        /// Creates a new <see cref="Options"/> instance.
-        /// </summary>
-        /// <param name="shortPrefix">The case-sensitive prefix for short options.</param>
-        /// <param name="longPrefix">The case-sensitive prefix for long options.</param>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="shortPrefix"/> or <paramref name="longPrefix"/> is <c>null</c>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// <paramref name="shortPrefix"/> or <paramref name="longPrefix"/> is empty.
-        /// <paramref name="shortPrefix"/> or <paramref name="longPrefix"/> contains white space, or control characters.
-        /// <paramref name="shortPrefix"/> and <paramref name="longPrefix"/> are equal.
-        /// </exception>
         public Options( string shortPrefix = "-", string longPrefix = "--" ) {
             if ( shortPrefix == null ) {
                 throw new ArgumentNullException( nameof( shortPrefix ) );
@@ -335,136 +286,6 @@ namespace DD.GetOpts {
 
             this.shortPrefix = shortPrefix;
             this.longPrefix = longPrefix;
-        }
-
-        /// <summary>
-        /// Adds a new command-line option to the collection.
-        /// </summary>
-        /// <param name="shortName">
-        /// The case-sensitive short-name of the command-line option. Or <c>string.Empty</c>.
-        /// </param>
-        /// <param name="longName">
-        /// The case-sensitive long-name of the command-line option. Or <c>string.Empty</c>.
-        /// </param>
-        /// <returns>The current <see cref="Options"/> instance.</returns>
-        /// <exception cref="ArgumentNullException">
-        /// <paramref name="shortName"/> or <paramref name="longName"/> is <c>null</c>.
-        /// </exception>
-        /// <exception cref="ArgumentException">
-        /// <paramref name="shortName"/> or <paramref name="longName"/> is empty.
-        /// <paramref name="shortName"/> or <paramref name="longName"/> contains white space, or control characters.
-        /// <paramref name="shortName"/> or <paramref name="longName"/> already exist in the current collection.
-        /// </exception>
-        public Options Add( string shortName, string longName ) {
-            if ( shortName == null ) {
-                throw new ArgumentNullException( nameof( shortName ) );
-            }
-            if ( longName == null ) {
-                throw new ArgumentNullException( nameof( longName ) );
-            }
-
-            shortName = shortName.Trim();
-            longName = longName.Trim();
-
-            if ( shortName == string.Empty
-                && longName == string.Empty ) {
-
-                throw new ArgumentException( "Option must contain at least one valid name." );
-            }
-
-            if ( shortName.Any( x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
-                throw new ArgumentException( "Short name must not contain control or white space characters.", nameof( shortName ) );
-            }
-            if ( longName.Any( x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
-                throw new ArgumentException( "Long name must not contain control or white space characters.", nameof( longName ) );
-            }
-
-            var option = new Option( shortName, longName );
-            AddShortOption( option );
-            AddLongOption( option );
-            return this;
-        }
-
-        private void AddShortOption( Option option ) {
-            if ( option.ShortName == string.Empty ) {
-                return;
-            }
-
-            try {
-                shortOptions.Add( option.ShortName, option );
-            } catch ( ArgumentException ex ) {
-                throw new ArgumentException( $"Option with short name {option.ShortName} already exists.", ex );
-            }
-        }
-
-        private void AddLongOption( Option option ) {
-            if ( option.LongName == string.Empty ) {
-                return;
-            }
-
-            try {
-                longOptions.Add( option.LongName, option );
-            } catch ( ArgumentException ex ) {
-                throw new ArgumentException( $"Option with long name {option.LongName} already exists.", ex );
-            }
-        }
-
-        public IEnumerable<string> Parse( IEnumerable<string> arguments ) {
-            var matches = new List<string>();
-
-            foreach ( var argument in arguments ) {
-                var name = argument;
-
-                if ( argument.StartsWith( shortPrefix ) ) { // Check for short option
-                    name = name.Remove( 0, shortPrefix.Length );
-
-                    if ( !shortOptions.TryGetValue( name, out var shortOption ) ) {
-                        throw new ArgumentException( $"Unknown option {argument}.", nameof( arguments ) );
-                    }
-
-                } else if ( argument.StartsWith( longPrefix ) ) { // Check for long option
-                   name = name.Remove( 0, longPrefix.Length );
-
-                    if ( longOptions.TryGetValue( name, out var longOption ) ) {
-                        throw new ArgumentException( $"Unknown option {argument}.", nameof( arguments ) );
-                    }
-                }
-
-                matches.Add( name );
-            }
-
-            return matches;
-        }
-
-        /// <summary>
-        /// The command line option.
-        /// </summary>
-        private sealed class Option {
-            /// <summary>
-            /// Gets the short name of the option.
-            /// </summary>
-            /// <returns>The short name as a <c>string</c>.</returns>
-            public string ShortName {
-                get;
-            }
-
-            /// <summary>
-            /// Gets the long name of the option.
-            /// </summary>
-            /// <returns>The short name as a <c>string</c>.</returns>
-            public string LongName {
-                get;
-            }
-
-            /// <summary>
-            /// Creates a new <see cref="Option"/> instance.
-            /// </summary>
-            /// <param name="shortName">The short name of the option.</param>
-            /// <param name="longName">The long name of the option.</param>
-            public Option( string shortName, string longName ) {
-                ShortName = shortName;
-                LongName = longName;
-            }
         }
     }*/
 }
