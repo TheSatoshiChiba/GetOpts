@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using NSubstitute;
 using NUnit.Framework;
 
@@ -265,10 +266,156 @@ namespace DD.GetOpts.Tests {
                 Is.EquivalentTo( matches ) );
         }
 
-        // TODO: Add all previous tests with arguments.
-        // TODO: Add tests for "-gamma" and "--g".
-        // TODO: Add tests for no options but arguments.
-        // TODO: Add tests for no options and no arguments.
-        // TODO: Add tests for optional options only but no arguments.
+        [Test]
+        public void ParseInvalidPrefixSignsTest() {
+            var arg = Argument.NONE;
+            var args = Substitute.For<IReadOnlyCollection<string>>();
+            var gamma = new Option( "g", "gamma", arg, Occur.MULTIPLE );
+
+            options.Add( gamma );
+
+            Assert.That(
+                () => options.Parse( new string[] { "-gamma" } ),
+                Throws.ArgumentException
+                    .With.Message.Contain( $"Invalid argument -gamma" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
+
+            Assert.That(
+                () => options.Parse( new string[] { "--g" } ),
+                Throws.ArgumentException
+                    .With.Message.Contain( $"Invalid argument --g" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
+        }
+
+        [Test]
+        public void ParseNoOptionsTest() {
+            Assert.That(
+                () => options.Parse( new string[] { "--gamma" } ),
+                Throws.ArgumentException
+                    .With.Message.Contain( $"Invalid argument --gamma" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
+
+            Assert.That(
+                () => options.Parse( new string[] { "-g" } ),
+                Throws.ArgumentException
+                    .With.Message.Contain( $"Invalid argument -g" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
+        }
+
+        [Test]
+        public void ParseNoOptionsNoArgumentsTest() {
+            Assert.That(
+                options.Parse( new string[ 0 ] ),
+                Is.EquivalentTo( new Match[ 0 ] ) );
+        }
+
+        [Test]
+        public void ParseOptionalOnlyTest() {
+            var arg = Argument.NONE;
+            var args = Substitute.For<IReadOnlyCollection<string>>();
+
+            var beta = new Option( "b", "beta", arg, Occur.OPTIONAL );
+            options.Add( beta );
+
+            var matches1 = new Match[] {
+                new Match( "b", "beta", 1, args ),
+            };
+
+            var matches2 = new Match[ 0 ];
+
+            Assert.That(
+                options.Parse( new string[] { "-b" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "--beta" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[ 0 ] ),
+                Is.EquivalentTo( matches2 ) );
+        }
+
+        [Test]
+        public void ParseWithArgumentsTest() {
+            var args0 = Substitute.For<IReadOnlyCollection<string>>();
+            var args1 = new ReadOnlyCollection<string>(
+                new List<string>() { "foo" } );
+
+            var alpha1 = new Option(
+                "a1", "alpha1", Argument.REQUIRED, Occur.ONCE );
+            var alpha2 = new Option(
+                "a2", "alpha2", Argument.OPTIONAL, Occur.ONCE );
+
+            options.Add( alpha1 ).Add( alpha2 );
+
+            var matches1 = new Match[] {
+                new Match( "a1", "alpha1", 1, args1 ),
+                new Match( "a2", "alpha2", 1, args0 ),
+            };
+            var matches2 = new Match[] {
+                new Match( "a1", "alpha1", 1, args1 ),
+                new Match( "a2", "alpha2", 1, args1 ),
+            };
+
+            Assert.That(
+                options.Parse( new string[] { "-a1", "foo", "-a2" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "-a2", "-a1", "foo" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "-a1", "foo", "--alpha2" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "--alpha2", "-a1", "foo" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "--alpha1", "foo", "-a2" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "--alpha1", "foo", "--alpha2" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "-a1", "foo", "-a2", "foo" } ),
+                Is.EquivalentTo( matches2 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "-a2", "foo", "-a1", "foo" } ),
+                Is.EquivalentTo( matches2 ) );
+
+            Assert.That(
+                options.Parse( new string[] {
+                    "-a1", "foo", "--alpha2", "foo" } ),
+                Is.EquivalentTo( matches2 ) );
+
+            Assert.That(
+                options.Parse( new string[] {
+                    "--alpha1", "foo", "-a2", "foo" } ),
+                Is.EquivalentTo( matches2 ) );
+
+            Assert.That(
+                options.Parse( new string[] {
+                    "--alpha1", "foo", "--alpha2", "foo" } ),
+                Is.EquivalentTo( matches2 ) );
+
+            Assert.That(
+                () => options.Parse( new string[] { "-a1", "-a2" } ),
+                Throws.ArgumentException
+                    .With.Message.Contain( $"Expected argument for [{alpha1}]" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
+
+            Assert.That(
+                () => options.Parse( new string[] { "-a2", "-a1" } ),
+                Throws.ArgumentException
+                    .With.Message.Contain( $"Expected argument for [{alpha1}]" )
+                    .And.Message.Contain( "Parameter name: arguments" ) );
+        }
     }
 }

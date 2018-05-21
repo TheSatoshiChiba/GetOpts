@@ -56,7 +56,7 @@ namespace DD.GetOpts {
         /// <see cref="Option"/> was matched.
         /// </param>
         /// <param name="arguments">
-        ///
+        /// The collection of matched arguments.
         /// </param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="shortName"/>, <paramref name="longName"/>, or

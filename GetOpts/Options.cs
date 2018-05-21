@@ -85,6 +85,30 @@ namespace DD.GetOpts {
             }
         }
 
+        /// <summary>
+        /// Parses a enumeration of arguments against the options in the current
+        /// <see cref="Options"/> instance.
+        /// </summary>
+        /// <param name="arguments">The enumeration of arguments.</param>
+        /// <returns>
+        /// The <see cref="IEnumerable{T}"/> whose elements are matches of
+        /// <paramref name="arguments"/> against the current
+        /// <see cref="Options"/> instance.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="arguments"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="arguments"/> contains a option that does not match
+        /// any <see cref="Option"/> in the current <see cref="Options"/>
+        /// instance.
+        /// <paramref name="arguments"/> is missing a required argument for a
+        /// <see cref="Option"/> in the current <see cref="Options"/> instance.
+        /// <paramref name="arguments"/> contains multiple matchings of a
+        /// <see cref="Option"/> with occurance of <see cref="Occur.ONCE"/>.
+        /// <paramref name="arguments"/> is missing a required
+        /// <see cref="Option"/>.
+        /// </exception>
         public IEnumerable<Match> Parse( IEnumerable<string> arguments ) {
             if ( arguments == null ) {
                 throw new ArgumentNullException( nameof( arguments ) );
@@ -209,52 +233,6 @@ namespace DD.GetOpts {
     }
 
         /*
-        private readonly HashSet<Option> required = new HashSet<Option>();
-
-        public Options Add( string shortName, string longName, Argument arguments, Occur occurs ) {
-            var option = new Option( shortName, longName, arguments, occurs );
-            if ( option.Occurs == Occur.ONCE ) {
-                required.Add( option );
-            }
-            return this;
-        }
-
-        public Matches Parse( IEnumerable<string> arguments ) {
-            var shortMatches = new Dictionary<string, Match>();
-            var longMatches = new Dictionary<string, Match>();
-
-            var req = new HashSet<Option>( required );
-            foreach ( var option in context.Options ) {
-                var match = new Match(
-                    option.ShortName,
-                    option.LongName,
-                    context.Count[ option ],
-                    context.Arguments[ option ].AsReadOnly() );
-
-                if ( match.ShortName != string.Empty ) {
-                    shortMatches.Add( match.ShortName, match );
-                }
-
-                if ( match.LongName != string.Empty ) {
-                    longMatches.Add( match.LongName, match );
-                }
-
-                req.Remove( option );
-            }
-
-            if ( req.Count > 0 ) {
-                var arg = req.First();
-
-                throw new ArgumentException(
-                    CreateErrorMessage( "Expected argument ", arg.ShortName, arg.LongName ) );
-            }
-
-            return new Matches(
-                context.Free.AsReadOnly(),
-                new ReadOnlyDictionary<string, Match>( shortMatches ),
-                new ReadOnlyDictionary<string, Match>( longMatches ) );
-        }
-
         public Options( string shortPrefix = "-", string longPrefix = "--" ) {
             if ( shortPrefix == null ) {
                 throw new ArgumentNullException( nameof( shortPrefix ) );
