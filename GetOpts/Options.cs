@@ -127,7 +127,7 @@ namespace DD.GetOpts {
         /// <paramref name="arguments"/> is missing a required argument for a
         /// <see cref="Option"/> in the current <see cref="Options"/> instance.
         /// <paramref name="arguments"/> contains multiple matchings of a
-        /// <see cref="Option"/> with occurance of <see cref="Occur.ONCE"/>.
+        /// <see cref="Option"/> with occurrence of <see cref="Occur.ONCE"/>.
         /// <paramref name="arguments"/> is missing a required
         /// <see cref="Option"/>.
         /// </exception>
@@ -225,14 +225,14 @@ namespace DD.GetOpts {
                 // We found a valid option.
                 matchedOptions.Add( option );
 
-                // Update occurance.
+                // Update occurrence.
                 if ( !matchedCount.TryGetValue( option, out var count ) ) {
                     matchedCount.Add( option, 1 );
                 } else {
                     count += 1;
                     if ( option.Occurs != Occur.MULTIPLE && count > 1 ) {
                         throw new ArgumentException(
-                            $"Multiple occurance of [{option}]",
+                            $"Multiple occurrence of [{option}]",
                             nameof( arguments ) );
                     }
                     matchedCount[ option ] = count;

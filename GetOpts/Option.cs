@@ -26,7 +26,7 @@ using System.Text;
 
 namespace DD.GetOpts {
     /// <summary>
-    /// The occurance of a <see cref="Option"/>.
+    /// The occurrence of a <see cref="Option"/>.
     /// </summary>
     public enum Occur : byte {
         /// <summary>
@@ -47,7 +47,7 @@ namespace DD.GetOpts {
     }
 
     /// <summary>
-    /// The occurence of a argument after the <see cref="Option"/>.
+    /// The occurrence of a argument after the <see cref="Option"/>.
     /// </summary>
     public enum Argument : byte {
         /// <summary>
@@ -89,21 +89,21 @@ namespace DD.GetOpts {
         public string LongName { get; }
 
         /// <summary>
-        /// Gets the <see cref="Argument"/> occurance of the current command
+        /// Gets the <see cref="Argument"/> occurrence of the current command
         /// line <see cref="Option"/>.
         /// </summary>
         /// <returns>
-        /// The <see cref="Argument"/> occurance of the current command line
+        /// The <see cref="Argument"/> occurrence of the current command line
         /// <see cref="Option"/>.
         /// </returns>
         public Argument Arguments { get; }
 
         /// <summary>
-        /// Gets the occurance option of the current command line
+        /// Gets the occurrence option of the current command line
         /// <see cref="Option"/>.
         /// </summary>
         /// <returns>
-        /// The occurance option of the current command line
+        /// The occurrence option of the current command line
         /// <see cref="Option"/>.
         /// </returns>
         public Occur Occurs { get; }
@@ -133,7 +133,7 @@ namespace DD.GetOpts {
         /// <paramref name="shortName"/> and <paramref name="longName"/> are
         /// empty.
         /// <paramref name="shortName"/> or <paramref name="longName"/> contain
-        /// invalid whitespace or control characters.
+        /// invalid white space or control characters.
         /// </exception>
         public Option(
             string shortName,

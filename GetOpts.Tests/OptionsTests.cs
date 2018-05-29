@@ -210,7 +210,7 @@ namespace DD.GetOpts.Tests {
             Assert.That(
                 () => options.Parse( arguments ),
                 Throws.ArgumentException
-                    .With.Message.Contain( $"Multiple occurance of [{alpha}]" )
+                    .With.Message.Contain( $"Multiple occurrence of [{alpha}]" )
                     .And.Message.Contain( "Parameter name: arguments" ) );
         }
 
@@ -254,7 +254,7 @@ namespace DD.GetOpts.Tests {
             Assert.That(
                 () => options.Parse( arguments ),
                 Throws.ArgumentException
-                    .With.Message.Contain( $"Multiple occurance of [{beta}]" )
+                    .With.Message.Contain( $"Multiple occurrence of [{beta}]" )
                     .And.Message.Contain( "Parameter name: arguments" ) );
         }
 
