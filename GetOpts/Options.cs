@@ -140,6 +140,7 @@ namespace DD.GetOpts {
             var matchedOptions = new HashSet<Option>();
             var matchedCount = new Dictionary<Option, int>();
             var matchedArguments = new Dictionary<Option, List<string>>();
+            var freeArguments = new List<string>();
 
             Option previous = null;
 
@@ -173,10 +174,9 @@ namespace DD.GetOpts {
                 } else {
                     if ( previous?.Arguments != Argument.NONE ) {
                         matchedArguments[ previous ].Add( argument );
+                    } else {
+                        freeArguments.Add( argument );
                     }
-                    // else {
-                    // TODO: Match free standing argument
-                    // }
 
                     previous = null;
                 }
@@ -199,12 +199,23 @@ namespace DD.GetOpts {
             }
 
             // Returns matches
-            return matchedOptions.Select(
+            var result = matchedOptions.Select(
                 x => new Match(
                     x.ShortName,
                     x.LongName,
                     matchedCount[ x ],
                     matchedArguments[ x ] ) );
+
+            if ( freeArguments.Count > 0 ) {
+                result = result.Prepend(
+                    new Match(
+                        string.Empty,
+                        string.Empty,
+                        freeArguments.Count,
+                        freeArguments ) );
+            }
+
+            return result;
 
             Option ReadOption(
                 string argument,
