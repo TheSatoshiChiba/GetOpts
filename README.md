@@ -13,9 +13,9 @@ var option2 = new Option( "b", "beta", Argument.REQUIRED, Occur.OPTIONAL );
 var option2 = new Option( "g", "gamma", Argument.OPTIONAL, Occur.MULTIPLE );
 ```
 
-Every option consists a short and long name, as well as various occurance and argument rules. A short name has to prefixed with a `-` in the supplied arguments while a long name has to be prefixed with a `--`. In the above example `option1` can be parsed either via `-a` or `--alpha`. The argument rules of the above options are as follows:
+Every option consists a short and long name, as well as various occurrence and argument rules. A short name has to prefixed with a `-` in the supplied arguments while a long name has to be prefixed with a `--`. In the above example `option1` can be parsed either via `-a` or `--alpha`. The argument rules of the above options are as follows:
 * `option1` doesn't have an argument (Only `-a` or `--alpha` are valid).
-* `option2` requires and argument (Only `-a argument` or `--alpha argument` are valid).
+* `option2` requires and argument (Only `-b argument` or `--beta argument` are valid).
 * `option2` can either have an argument or omit it.
 
 The occurance rules of the above options are as follows:
