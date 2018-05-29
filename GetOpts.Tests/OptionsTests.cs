@@ -439,5 +439,47 @@ namespace DD.GetOpts.Tests {
                     .With.Message.Contain( $"Expected argument for [{alpha1}]" )
                     .And.Message.Contain( "Parameter name: arguments" ) );
         }
+
+        [Test]
+        public void ParseFreeArgumentTest() {
+            var args1 = new ReadOnlyCollection<string>(
+                new List<string>() { "foo" } );
+            var args2 = new ReadOnlyCollection<string>(
+                new List<string>() { "foo", "bar", "baz" } );
+            var args3 = new ReadOnlyCollection<string>(
+                new List<string>() { "x", "y", "z" } );
+
+            var matches1 = new Match[] {
+                new Match( string.Empty, string.Empty, args1.Count, args1 ),
+            };
+            var matches2 = new Match[] {
+                new Match( string.Empty, string.Empty, args2.Count, args2 ),
+            };
+            var matches3 = new Match[] {
+                new Match( string.Empty, string.Empty, args2.Count, args2 ),
+                new Match( "b", "beta", args3.Count + 1, args3 ),
+            };
+
+            options.Add(
+                new Option( "b", "beta", Argument.OPTIONAL, Occur.MULTIPLE ) );
+
+            Assert.That(
+                options.Parse( new string[] { "foo" } ),
+                Is.EquivalentTo( matches1 ) );
+
+            Assert.That(
+                options.Parse( new string[] { "foo", "bar", "baz" } ),
+                Is.EquivalentTo( matches2 ) );
+
+            Assert.That(
+                options.Parse(
+                    new string[] {
+                        "-b", "x", "foo",
+                        "--beta", "y", "bar",
+                        "-b",
+                        "--beta", "z", "baz"
+                    } ),
+                Is.EquivalentTo( matches3 ) );
+        }
     }
 }

@@ -172,10 +172,12 @@ namespace DD.GetOpts {
                             nameof( arguments ) );
 
                 } else {
-                    if ( previous?.Arguments != Argument.NONE ) {
-                        matchedArguments[ previous ].Add( argument );
-                    } else {
+                    if ( previous == null
+                        || previous.Arguments == Argument.NONE ) {
+
                         freeArguments.Add( argument );
+                    } else {
+                        matchedArguments[ previous ].Add( argument );
                     }
 
                     previous = null;
