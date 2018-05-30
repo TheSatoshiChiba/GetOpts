@@ -41,18 +41,24 @@ Now we are ready to parse command line arguments. In the following snippet we as
 var matches = options.Parse( args );
 ```
 
-Should a supplied argument not match any `Option` in the `Options` collection then the method will throw a `ArgumentException` with a detailed description. The return value of the `Parse()` method is a `IEnumerable<T>` where `T` is `Match`. Let's assume we parsed `-a -g foo -g bar` then the result would include two matches. One for `-a` and one for `-g`. A `Match` has the following properties:
+Should a supplied argument not match any `Option` in the `Options` collection then the method will throw a `ArgumentException` with a detailed description. The exception are free-standing arguments without a short or long prefix. The return value of the `Parse()` method is a `IEnumerable<T>` where `T` is `Match`. Let's assume we parsed `first -a -g foo -g bar last` then the result would include three matches. The first one for the free standing arguments `first` and `last`, the second for `-a`, and the third for `-g`. A `Match` has the following properties:
 
 * `ShortName`: The short name of the matched option (In this example either `a` or `g`).
 * `LongName`: The long name of the matched option (In this example either `alpha` or `gamma`).
 * `Count`: The number of times the `Option` was matched. (`1` for `a` and `2` for `g` ).
 * `Arguments`: The read-only collection of all arguments supplied to the matched options. (Empty for `a` but would contain `"foo"` and `"bar"` for `g`).
 
+A match for free-standing arguments doesn't have a `ShortName` or `LongName`. The `Count` is set to the amount of free-standing arguments. `Arguments` will be a list of all free-standing arguments encountered (In this case `"first"` and `"last"`).
+
 The best way to query the matches is by using `Linq` extensions:
 ```csharp
 // Get all arguments for -g/--gamma
 var arguments = matches.Where( x => x.ShortName == "g" ).First().Arguments;
 ```
+
+## How to build
+
+To to build the library execute `dotnet build -c Release`. You can find the resulting .NET Standard 2.0 library in `GetOpts/bin/Release/netstandard2.0`. To run the unit tests execute `dotnet test GetOpts.Tests/GetOpts.Tests.csproj -f netcoreapp2.0 -v n`. To run the tests with code coverage add `/p:CollectCoverage=true` at the end.
 
 ## License
 
