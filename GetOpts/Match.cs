@@ -82,7 +82,7 @@ namespace DD.GetOpts {
         /// </param>
         /// <exception cref="ArgumentNullException">
         /// <paramref name="shortName"/>, <paramref name="longName"/>, or
-        /// <paramref name="arguments" is <c>null</c>.
+        /// <paramref name="arguments"/> is <c>null</c>.
         /// </exception>
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="count"/> is either negative or zero.
