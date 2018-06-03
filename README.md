@@ -56,6 +56,15 @@ The best way to query the matches is by using `Linq` extensions:
 var arguments = matches.Where( x => x.ShortName == "g" ).First().Arguments;
 ```
 
+## Define custom prefixes
+
+The default option prefixes `-` and `--` can be changed to something else during the initialization of `Options`:
+```csharp
+var options = new Options( "/", "//" );
+```
+
+Now short-name options would have to be prefixed with `/` and long-name options with `//` instead of `-` and `--`.
+
 ## How to build
 
 To to build the library execute `dotnet build -c Release`. You can find the resulting .NET Standard 2.0 library in `GetOpts/bin/Release/netstandard2.0`. To run the unit tests execute `dotnet test GetOpts.Tests/GetOpts.Tests.csproj -f netcoreapp2.0 -v n`. To run the tests with code coverage add `/p:CollectCoverage=true` at the end.
