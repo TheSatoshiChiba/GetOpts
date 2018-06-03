@@ -32,6 +32,29 @@ namespace DD.GetOpts.Tests {
     /// The <see cref="Options"/> tests.
     /// </summary>
     public class OptionsTests {
+        private static readonly char[] WHITE_SPACE_CHARACTERS = new[] {
+            '\u0020', '\u00A0', '\u1680', '\u2000', '\u2001',
+            '\u2002', '\u2003', '\u2004', '\u2005', '\u2006',
+            '\u2007', '\u2008', '\u2009', '\u200A', '\u202F',
+            '\u205F', '\u3000', '\u2028', '\u2029', '\u0009',
+            '\u000A', '\u000B', '\u000C', '\u000D', '\u0085',
+        };
+
+        private static readonly char[] CONTROL_CHARACTERS = new[] {
+            '\u0000', '\u0001', '\u0002', '\u0003', '\u0004',
+            '\u0005', '\u0006', '\u0007', '\u0008', '\u000E',
+            '\u000F', '\u0010', '\u0011', '\u0012', '\u0013',
+            '\u0014', '\u0015', '\u0016', '\u0017', '\u0018',
+            '\u0019', '\u001A', '\u001B', '\u001C', '\u001D',
+            '\u001E', '\u001F', '\u007F', '\u0080', '\u0081',
+            '\u0082', '\u0083', '\u0084', '\u0086', '\u0087',
+            '\u0088', '\u0089', '\u008A', '\u008B', '\u008C',
+            '\u008D', '\u008E', '\u008F', '\u0090', '\u0091',
+            '\u0092', '\u0093', '\u0094', '\u0095', '\u0096',
+            '\u0097', '\u0098', '\u0099', '\u009A', '\u009B',
+            '\u009C', '\u009D', '\u009E', '\u009F',
+        };
+
         private Options options;
 
         [SetUp]
@@ -42,6 +65,57 @@ namespace DD.GetOpts.Tests {
         [TearDown]
         public void EndTest() {
             // no-op.
+        }
+
+        [Test]
+        public void CreationTest() {
+            Assert.That(
+                () => new Options( shortPrefix: null ),
+                Throws.ArgumentNullException
+                    .With.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: null ),
+                Throws.ArgumentNullException
+                    .With.Message.Contain( "longPrefix" ) );
+
+            Assert.That(
+                () => new Options( shortPrefix: string.Empty ),
+                Throws.ArgumentException
+                    .With.Message.Contain( "Prefix must not be empty" )
+                    .And.With.Message.Contain( "shortPrefix" ) );
+
+            Assert.That(
+                () => new Options( longPrefix: string.Empty ),
+                Throws.ArgumentException
+                    .With.Message.Contain( "Prefix must not be empty" )
+                    .And.With.Message.Contain( "longPrefix" ) );
+
+            var sequence = CONTROL_CHARACTERS.Union( WHITE_SPACE_CHARACTERS );
+            foreach ( var character in sequence ) {
+                var prefix = $"-{character}-";
+
+                Assert.That(
+                    () => new Options( shortPrefix: prefix ),
+                    Throws.ArgumentException
+                        .With.Message.Contain(
+                            "Prefix must not contain control"
+                            + " or white space characters" )
+                        .And.With.Message.Contain( "shortPrefix" ) );
+
+                Assert.That(
+                    () => new Options( longPrefix: prefix ),
+                    Throws.ArgumentException
+                        .With.Message.Contain(
+                            "Prefix must not contain control"
+                            + " or white space characters" )
+                        .And.With.Message.Contain( "longPrefix" ) );
+            }
+
+            Assert.That(
+                () => new Options( "-", "-" ),
+                Throws.ArgumentException.With.Message.Contain(
+                    "Short and long prefix must not be the same." ) );
         }
 
         [Test]
@@ -480,6 +554,24 @@ namespace DD.GetOpts.Tests {
                         "--beta", "z", "baz"
                     } ),
                 Is.EquivalentTo( matches3 ) );
+        }
+
+        [Test]
+        public void ParseCustomPrefixTest() {
+            var customOptions = new Options( "/", "//" );
+            customOptions.Add(
+                new Option(
+                    "p:", "property:", Argument.REQUIRED, Occur.MULTIPLE ) );
+
+            var args = new ReadOnlyCollection<string>(
+                new List<string>() { "prop1", "prop2" } );
+            var matches = new Match[]  {
+                new Match( "p:", "property:", 2, args ),
+            };
+
+            var cmds = new string[] { "/p:", "prop1", "//property:", "prop2" };
+            Assert.That(
+                customOptions.Parse( cmds ), Is.EquivalentTo( matches ) );
         }
     }
 }

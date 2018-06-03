@@ -44,9 +44,77 @@ namespace DD.GetOpts {
         /// <summary>
         /// Initializes a new <see cref="Options"/> instance.
         /// </summary>
-        public Options() {
-            shortPrefix = "-";
-            longPrefix = "--";
+        /// <remarks>
+        /// <para>
+        /// If no <paramref name="shortPrefix"/> is provided it will be
+        /// <c>"-"</c>.
+        /// </para>
+        /// <para>
+        /// If no <paramref name="longPrefix"/> is provided it will be
+        /// <c>"--"</c>.
+        /// </para>
+        /// </remarks>
+        /// <param name="shortPrefix">The prefix for short-name options.</param>
+        /// <param name="longPrefix">The prefix for long-name options.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="shortPrefix"/> or <paramref name="longPrefix"/> is
+        /// <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <para>
+        /// <paramref name="shortPrefix"/> is empty, contains control
+        /// characters, or contains white-space characters.
+        /// </para>
+        /// <para>
+        /// <paramref name="longPrefix"/> is empty, contains control
+        /// characters, or contains white-space characters.
+        /// </para>
+        /// <para>
+        /// <paramref name="shortPrefix"/> and <paramref name="longPrefix"/> are
+        /// the same.
+        /// </para>
+        /// </exception>
+        public Options( string shortPrefix = "-", string longPrefix = "--" ) {
+            if ( shortPrefix == null ) {
+                throw new ArgumentNullException( nameof( shortPrefix ) );
+            }
+            if ( longPrefix == null ) {
+                throw new ArgumentNullException( nameof( longPrefix ) );
+            }
+
+            shortPrefix = shortPrefix.Trim();
+            if ( shortPrefix == string.Empty ) {
+                throw new ArgumentException(
+                    "Prefix must not be empty", nameof( shortPrefix ) );
+            }
+
+            longPrefix = longPrefix.Trim();
+            if ( longPrefix == string.Empty ) {
+                throw new ArgumentException(
+                    "Prefix must not be empty", nameof( longPrefix ) );
+            }
+
+            if ( shortPrefix.Any(
+                x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
+
+                throw new ArgumentException(
+                    "Prefix must not contain control or white space characters",
+                    nameof( shortPrefix ) );
+            }
+            if ( longPrefix.Any(
+                x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
+
+                throw new ArgumentException(
+                    "Prefix must not contain control or white space characters",
+                    nameof( longPrefix ) );
+            }
+            if ( shortPrefix == longPrefix ) {
+                throw new ArgumentException(
+                    "Short and long prefix must not be the same." );
+            }
+
+            this.shortPrefix = shortPrefix;
+            this.longPrefix = longPrefix;
         }
 
         /// <summary>
@@ -60,9 +128,13 @@ namespace DD.GetOpts {
         /// <paramref name="option"/> is <c>null</c>.
         /// </exception>
         /// <exception cref="ArgumentException">
+        /// <para>
         /// A <paramref name="option"/> name contains the short <c>-</c>
         /// or the long <c>--</c> prefix.
+        /// </para>
+        /// <para>
         /// A <paramref name="option"/> name already exists in this collection.
+        /// </para>
         /// </exception>
         public Options Add( Option option ) {
             if ( option == null ) {
@@ -129,15 +201,23 @@ namespace DD.GetOpts {
         /// <paramref name="arguments"/> is <c>null</c>.
         /// </exception>
         /// <exception cref="ArgumentException">
+        /// <para>
         /// <paramref name="arguments"/> contains a option that does not match
         /// any <see cref="Option"/> in the current <see cref="Options"/>
         /// instance.
+        /// </para>
+        /// <para>
         /// <paramref name="arguments"/> is missing a required argument for a
         /// <see cref="Option"/> in the current <see cref="Options"/> instance.
+        /// </para>
+        /// <para>
         /// <paramref name="arguments"/> contains multiple matchings of a
         /// <see cref="Option"/> with occurrence of <see cref="Occur.ONCE"/>.
+        /// </para>
+        /// <para>
         /// <paramref name="arguments"/> is missing a required
         /// <see cref="Option"/>.
+        /// </para>
         /// </exception>
         public IEnumerable<Match> Parse( IEnumerable<string> arguments ) {
             if ( arguments == null ) {
@@ -274,39 +354,4 @@ namespace DD.GetOpts {
         /// <inheritdoc/>
         IEnumerator IEnumerable.GetEnumerator() => options.GetEnumerator();
     }
-
-        /*
-        public Options( string shortPrefix = "-", string longPrefix = "--" ) {
-            if ( shortPrefix == null ) {
-                throw new ArgumentNullException( nameof( shortPrefix ) );
-            }
-            if ( longPrefix == null ) {
-                throw new ArgumentNullException( nameof( longPrefix ) );
-            }
-
-            shortPrefix = shortPrefix.Trim();
-            if ( shortPrefix == string.Empty ) {
-                throw new ArgumentException( "Prefix must not be empty.", nameof( shortPrefix ) );
-            }
-
-            longPrefix = longPrefix.Trim();
-            if ( longPrefix == string.Empty ) {
-                throw new ArgumentException( "Prefix must not be empty.", nameof( longPrefix ) );
-            }
-
-            if ( shortPrefix.Any( x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
-                throw new ArgumentException( "Prefix must not contain control or white space characters.", nameof( shortPrefix ) );
-            }
-            if ( longPrefix.Any( x => char.IsWhiteSpace( x ) || char.IsControl( x ) ) ) {
-                throw new ArgumentException( "Prefix must not contain control or white space characters.", nameof( longPrefix ) );
-            }
-
-            if ( shortPrefix == longPrefix ) {
-                throw new ArgumentException( "Short and long prefix must not be the same." );
-            }
-
-            this.shortPrefix = shortPrefix;
-            this.longPrefix = longPrefix;
-        }
-    }*/
 }
