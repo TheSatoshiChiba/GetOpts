@@ -32,14 +32,22 @@ namespace DD.GetOpts {
     /// The command line <see cref="Option"/> parser.
     /// </summary>
     public sealed class Options : IEnumerable<Option> {
-        private const string SHORT_PREFIX = "-";
-        private const string LONG_PREFIX = "--";
+        private readonly string shortPrefix;
+        private readonly string longPrefix;
 
         private readonly HashSet<Option> options = new HashSet<Option>();
         private readonly Dictionary<string, Option> shortOptions
             = new Dictionary<string, Option>();
         private readonly Dictionary<string, Option> longOptions
             = new Dictionary<string, Option>();
+
+        /// <summary>
+        /// Initializes a new <see cref="Options"/> instance.
+        /// </summary>
+        public Options() {
+            shortPrefix = "-";
+            longPrefix = "--";
+        }
 
         /// <summary>
         /// Adds a <see cref="Option"/> to the current <see cref="Options"/>
@@ -92,16 +100,16 @@ namespace DD.GetOpts {
             return this;
 
             void CheckPrefix( string name, string paramName ) {
-                if ( name.StartsWith( LONG_PREFIX ) ) {
+                if ( name.StartsWith( longPrefix ) ) {
                     throw new ArgumentException(
                         paramName
-                            + $" starts with the long prefix {LONG_PREFIX}",
+                            + $" starts with the long prefix {longPrefix}",
                         nameof( option ) );
                 }
-                if ( name.StartsWith( SHORT_PREFIX ) ) {
+                if ( name.StartsWith( shortPrefix ) ) {
                     throw new ArgumentException(
                         paramName
-                            + $" starts with the short prefix {SHORT_PREFIX}",
+                            + $" starts with the short prefix {shortPrefix}",
                         nameof( option ) );
                 }
             }
@@ -147,26 +155,26 @@ namespace DD.GetOpts {
             // Start parsing.
             while ( enumerator.MoveNext() ) {
                 var argument = enumerator.Current.Trim();
-                var isShort = argument.StartsWith( SHORT_PREFIX );
-                var isLong = argument.StartsWith( LONG_PREFIX );
+                var isShort = argument.StartsWith( shortPrefix );
+                var isLong = argument.StartsWith( longPrefix );
 
                 // Because we don't account for prefix precedence we can end up
                 // in a situation of matching both prefixes.
                 if ( isLong && isShort ) {
-                    isLong = LONG_PREFIX.Length > SHORT_PREFIX.Length;
+                    isLong = longPrefix.Length > shortPrefix.Length;
                     isShort = !isLong;
                 }
 
                 if ( isShort ) {
                     previous = ReadOption(
-                        argument, SHORT_PREFIX, shortOptions )
+                        argument, shortPrefix, shortOptions )
                         ?? throw new ArgumentException(
                             $"Invalid argument {argument}",
                             nameof( arguments ) );
 
                 } else if ( isLong ) {
                     previous = ReadOption(
-                        argument, LONG_PREFIX, longOptions )
+                        argument, longPrefix, longOptions )
                         ?? throw new ArgumentException(
                             $"Invalid argument {argument}",
                             nameof( arguments ) );
